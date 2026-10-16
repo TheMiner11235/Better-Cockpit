@@ -223,13 +223,14 @@ import { InputGroup } from "@patternfly/react-core/dist/esm/components/InputGrou
 import { Table, Tbody, Tr, Td } from '@patternfly/react-table';
 
 import { TypeaheadSelect } from "cockpit-components-typeahead-select";
+import { PasswordStrength } from "cockpit-components-password.jsx";
 import { show_modal_dialog, apply_modal_dialog } from "cockpit-components-dialog.jsx";
 import { ListingTable } from "cockpit-components-table.jsx";
 import { FormHelper } from "cockpit-components-form-helper";
 
 import {
     decode_filename, fmt_size, block_name, format_size_and_text, format_delay, for_each_async, get_byte_units,
-    BTRFS_TOOL_MOUNT_PATH
+    parse_number, BTRFS_TOOL_MOUNT_PATH
 } from "./utils.js";
 import { fmt_to_fragments } from "utils.jsx";
 import client from "./client.js";
@@ -660,21 +661,24 @@ const PassInputElement = ({ tag, title, options, val, change, validated }) => {
     const [show, setShow] = useState(false);
 
     return (
-        <InputGroup>
-            <TextInputPF4 data-field={tag} data-field-type="text-input"
-                          validated={validated}
-                          disabled={options.disabled}
-                          aria-label={title}
-                          autoComplete={options.new_password ? "new-password" : null}
-                          type={show ? "text" : "password"}
-                          value={val}
-                          onChange={(_event, value) => change(value)} />
-            <Button variant="control"
-                    onClick={() => setShow(!show)}
-                    isDisabled={options.disabled}>
-                { show ? <EyeSlashIcon /> : <EyeIcon /> }
-            </Button>
-        </InputGroup>);
+        <>
+            <InputGroup>
+                <TextInputPF4 data-field={tag} data-field-type="text-input"
+                              validated={validated}
+                              disabled={options.disabled}
+                              aria-label={title}
+                              autoComplete={options.new_password ? "new-password" : null}
+                              type={show ? "text" : "password"}
+                              value={val}
+                              onChange={(_event, value) => change(value)} />
+                <Button variant="control"
+                        onClick={() => setShow(!show)}
+                        isDisabled={options.disabled}>
+                    { show ? <EyeSlashIcon /> : <EyeIcon /> }
+                </Button>
+            </InputGroup>
+            {options.strength_meter && <PasswordStrength password={val} idPrefix={tag} />}
+        </>);
 };
 
 export const PassInput = (tag, title, options) => {
@@ -1068,7 +1072,7 @@ class SizeSliderElement extends React.Component {
         let slider_val;
         let text_val;
         if (val.text && val.unit) {
-            slider_val = Number(val.text) * val.unit;
+            slider_val = parse_number(val.text) * val.unit;
             text_val = val.text;
         } else {
             slider_val = val;
@@ -1110,7 +1114,7 @@ export const SizeSlider = (tag, title, options) => {
             // Convert to number.
             const unit = val.unit;
 
-            val = Number(val.text) * unit;
+            val = parse_number(val.text) * unit;
 
             // As a special case, if the user types something that
             // looks like the maximum (or minimum) when formatted,
@@ -1121,7 +1125,7 @@ export const SizeSlider = (tag, title, options) => {
 
             const sanitize = (limit) => {
                 const fmt = cockpit.format_number(limit / unit);
-                const parse = +fmt * unit;
+                const parse = parse_number(fmt) * unit;
 
                 if (val == parse)
                     val = limit;

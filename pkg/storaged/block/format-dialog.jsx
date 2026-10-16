@@ -326,7 +326,8 @@ function format_dialog_internal(client, path, start, size, enable_dos_extended, 
                                                     return _("Passphrase cannot be empty");
                                             },
                                             visible: vals => is_encrypted(vals) && vals.crypto != " keep",
-                                            new_password: true
+                                            new_password: true,
+                                            strength_meter: true
                                         }),
                               PassInput("passphrase2", _("Confirm"),
                                         {

@@ -13,7 +13,7 @@ import { EmptyStatePanel } from "cockpit-components-empty-state.jsx";
 import { JournalOutput } from "cockpit-components-logs-panel.jsx";
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
 
-import { getGrepFiltersFromOptions, getFilteredQuery } from "./logsHelpers.js";
+import { getGrepFiltersFromOptions, getFilteredQuery, getTimeFilterOption } from "./logsHelpers.js";
 
 // We open a couple of long-running channels with { superuser: "try" },
 // so we need to reload the page if the access level changes.
@@ -71,8 +71,9 @@ export class JournalBox extends React.Component {
 
         this.options = cockpit.location.options;
         this.match = getGrepFiltersFromOptions({ options: this.options })[1];
-        const { dataFollowing, defaultSince, updateIdentifiersList, setFilteredQuery } = this.props;
+        const { dataFollowing, updateIdentifiersList, setFilteredQuery } = this.props;
         const { priority, grep, boot, since, until } = this.options;
+        const defaultSince = getTimeFilterOption(this.options)?.value;
         let last = dataFollowing ? null : 1;
         let count = 0;
         let oldest = null;

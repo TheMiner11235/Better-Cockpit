@@ -5,6 +5,29 @@
 import cockpit from "cockpit";
 import { journal } from "journal";
 
+const _ = cockpit.gettext;
+
+export const timeFilterOptions = [
+    { key: 1, value: { key: "boot", value: 0 }, content: _("Current boot") },
+    { key: 2, value: { key: "boot", value: "-1" }, content: _("Previous boot") },
+    { key: 3, value: { key: "since", value: "-24hours", default: true }, content: _("Last 24 hours") },
+    { key: 4, value: { key: "since", value: "-7days" }, content: _("Last 7 days") },
+];
+
+// Return the { key, value } of the time filter preset that corresponds
+// to the given location options.  When neither "boot" nor "since" is set,
+// fall back to the default preset ("Last 24 hours").
+export const getTimeFilterOption = (options) => {
+    function find_key(key, value) {
+        return timeFilterOptions.find(o => o.value.key == key && o.value.value == value)?.value;
+    }
+    if (options.boot)
+        return find_key('boot', options.boot);
+    else if (options.since)
+        return find_key('since', options.since);
+    return timeFilterOptions.find(option => 'default' in option.value)?.value; // Use the default key
+};
+
 // Sometimes `journalctl` can be compiled without `PCRE2` which means
 // that `--grep` is not usable. Hide the search box in such cases.
 export function checkJournalctlGrep(setShowTextSearch) {
@@ -108,12 +131,15 @@ export const getOptionsFromTextInput = (value) => {
                     return false;
                 }
 
-                const well_know_keys = ["since", "until", "boot", "priority", "follow", "service", "identifier"];
+                const well_know_keys = ["since", "until", "boot", "priority", "follow", "service", "unit", "identifier"];
                 const map_keys = (key) => {
                     if (key === "identifier")
                         return "tag";
-                    if (key == "service")
-                        return "unit";
+                    // "unit" is the user facing filter name (see the "Unit"
+                    // popover in logs.jsx), while the internal/URL option is
+                    // called "service"; accept both spellings.
+                    if (key == "unit" || key == "service")
+                        return "service";
                     return key;
                 };
                 s = item.split(/:(.*)/);

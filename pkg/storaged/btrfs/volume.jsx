@@ -28,7 +28,7 @@ import {
     BlockingMessage, TeardownMessage,
     init_teardown_usage
 } from "../dialog.jsx";
-import { make_btrfs_subvolume_pages } from "./subvolume.jsx";
+import { make_btrfs_subvolume_pages, btrfs_create_subvolume_action } from "./subvolume.jsx";
 import { btrfs_device_actions } from "./device.jsx";
 
 const _ = cockpit.gettext;
@@ -110,6 +110,7 @@ export function make_btrfs_volume_page(parent, uuid) {
         component: BtrfsVolumeCard,
         props: { block_devices, uuid, use },
         actions: [
+            btrfs_create_subvolume_action(volume),
             {
                 title: _("Delete filesystem"),
                 action: () => btrfs_delete(uuid, btrfs_volume_card),

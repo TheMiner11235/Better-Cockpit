@@ -1,0 +1,25 @@
+{
+    "version": 0,
+    "name": "monitor",
+    "requires": {
+        "cockpit": "230"
+    },
+    "menu": {
+        "index": {
+            "label": "Monitor",
+            "order": 15,
+            "keywords": [
+                { "matches": ["monitor", "dashboard", "rings", "cpu", "memory", "process", "performance", "task manager", "metrics", "load"] }
+            ]
+        }
+    },
+    "tools": {
+        "terminal": {
+            "label": "Terminal",
+            "keywords": [
+                { "matches": ["terminal", "console", "command", "shell", "bash"] }
+            ]
+        }
+    },
+    "content-security-policy": "style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+}

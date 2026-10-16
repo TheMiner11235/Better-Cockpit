@@ -180,6 +180,34 @@ function subvolume_create(volume, subvol) {
     });
 }
 
+/*
+ * The action to create a subvolume of "volume", to be shown on the card
+ * of the filesystem/volume itself. This makes it possible to create a
+ * subvolume even when no subvolume is currently shown (for example in
+ * Anaconda, where the lone top-level subvolume is hidden).
+ */
+export function btrfs_create_subvolume_action(volume) {
+    if (!volume)
+        return null;
+
+    let excuse = null;
+
+    // Outside of Anaconda we can only create a subvolume when at least
+    // one subvolume is mounted, since only then do we know the real list
+    // of subvolumes.
+    if (!client.in_anaconda_mode()) {
+        const block_fsys = client.blocks_fsys[volume.path];
+        if (!block_fsys || block_fsys.MountPoints.length == 0)
+            excuse = _("At least one subvolume needs to be mounted");
+    }
+
+    return {
+        title: _("Create subvolume"),
+        excuse,
+        action: () => subvolume_create(volume, { id: 5, pathname: "/" }),
+    };
+}
+
 function subvolume_delete(volume, subvol, card) {
     const block = client.blocks[volume.path];
     const subvols = client.uuids_btrfs_subvols[volume.data.uuid];
@@ -313,8 +341,17 @@ export function make_btrfs_subvolume_pages(parent, volume) {
     }
 
     const root = subvols.find(s => s.id == 5);
-    if (root)
-        make_btrfs_subvolume_page(parent, volume, root, "", subvols);
+    if (root) {
+        // The top-level subvolume is only shown so that the real
+        // subvolumes can be nested underneath it and so that it can be
+        // mounted. In Anaconda there is nothing to nest and mounting is
+        // not a thing, so don't show a lone top-level subvolume (which
+        // would just look like a bogus "/" subvolume). Creating a
+        // subvolume is offered on the filesystem card instead.
+        const has_real_subvolumes = subvols.some(s => s.id !== 5);
+        if (has_real_subvolumes || !client.in_anaconda_mode())
+            make_btrfs_subvolume_page(parent, volume, root, "", subvols);
+    }
 }
 
 function make_btrfs_subvolume_page(parent, volume, subvol, path_prefix, subvols) {

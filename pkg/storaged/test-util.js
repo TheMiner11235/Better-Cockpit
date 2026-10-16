@@ -72,24 +72,35 @@ QUnit.test("get_byte_units", function (assert) {
     const gb = mb * 1000;
     const tb = gb * 1000;
 
+    const b_unit = { factor: 1, name: "B" };
+    const kib_unit = { factor: 1024, name: "KiB" };
     const mb_unit = { factor: mb, name: "MB" };
+    const mib_unit = { factor: 1024 * 1024, name: "MiB" };
     const gb_unit = { factor: gb, name: "GB" };
+    const gib_unit = { factor: 1024 * 1024 * 1024, name: "GiB" };
     const tb_unit = { factor: tb, name: "TB" };
+    const tib_unit = { factor: 1024 * 1024 * 1024 * 1024, name: "TiB" };
+
+    const all_units = [b_unit, kib_unit, mb_unit, mib_unit, gb_unit, gib_unit, tb_unit, tib_unit];
 
     function selected(unit) {
         return { factor: unit.factor, name: unit.name, selected: true };
     }
 
+    function with_selected(unit) {
+        return all_units.map(u => (u.factor === unit.factor ? selected(u) : u));
+    }
+
     const checks = [
-        [0 * mb, [selected(mb_unit), gb_unit, tb_unit]],
-        [20 * mb, [selected(mb_unit), gb_unit, tb_unit]],
-        [200 * mb, [selected(mb_unit), gb_unit, tb_unit]],
-        [2000 * mb, [selected(mb_unit), gb_unit, tb_unit]],
-        [20000 * mb, [mb_unit, selected(gb_unit), tb_unit]],
-        [20 * gb, [mb_unit, selected(gb_unit), tb_unit]],
-        [200 * gb, [mb_unit, selected(gb_unit), tb_unit]],
-        [2000 * gb, [mb_unit, selected(gb_unit), tb_unit]],
-        [20000 * gb, [mb_unit, gb_unit, selected(tb_unit)]]
+        [0 * mb, with_selected(mb_unit)],
+        [20 * mb, with_selected(mb_unit)],
+        [200 * mb, with_selected(mb_unit)],
+        [2000 * mb, with_selected(mb_unit)],
+        [20000 * mb, with_selected(gb_unit)],
+        [20 * gb, with_selected(gb_unit)],
+        [200 * gb, with_selected(gb_unit)],
+        [2000 * gb, with_selected(gb_unit)],
+        [20000 * gb, with_selected(tb_unit)]
     ];
 
     assert.expect(checks.length);

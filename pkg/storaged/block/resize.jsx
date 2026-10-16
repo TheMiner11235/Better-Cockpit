@@ -583,6 +583,11 @@ export function shrink_dialog(client, lvol_or_part, info, to_fit) {
             SizeSlider("size", _("Size"),
                        {
                            value: orig_size,
+                           // Don't allow shrinking to zero (or below one
+                           // extent/MiB). libblockdev doesn't tell us the
+                           // real minimum file system size, so this is the
+                           // smallest safe lower bound we can offer.
+                           min: round_size,
                            max: orig_size,
                            round: round_size,
                        })

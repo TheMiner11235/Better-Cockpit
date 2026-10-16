@@ -442,7 +442,8 @@ function add_dialog(client, block) {
                       {
                           visible: vals => !client.features.clevis || vals.type == "luks-passphrase",
                           validate: val => !val.length && _("Passphrase cannot be empty"),
-                          new_password: true
+                          new_password: true,
+                          strength_meter: true
                       }),
             PassInput("new_passphrase2", _("Repeat passphrase"),
                       {
@@ -491,7 +492,8 @@ function edit_passphrase_dialog(block, key) {
             PassInput("new_passphrase", _("New passphrase"),
                       {
                           validate: val => !val.length && _("Passphrase cannot be empty"),
-                          new_password: true
+                          new_password: true,
+                          strength_meter: true
                       }),
             PassInput("new_passphrase2", _("Repeat passphrase"),
                       {

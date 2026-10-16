@@ -16,6 +16,7 @@ import {
 import { StorageUsageBar } from "../storage-controls.jsx";
 import { btrfs_device_usage } from "./utils.jsx";
 import { btrfs_device_actions } from "./device.jsx";
+import { btrfs_create_subvolume_action } from "./subvolume.jsx";
 import { BtrfsLabelDescription } from "./volume.jsx";
 
 const _ = cockpit.gettext;
@@ -26,10 +27,12 @@ const _ = cockpit.gettext;
  * volumes, there they are shown under a different card.
  */
 export function make_btrfs_filesystem_card(next, backing_block, content_block) {
+    const block_btrfs = client.blocks_fsys_btrfs[content_block.path];
     return new_card({
         title: _("btrfs filesystem"),
         next,
-        actions: btrfs_device_actions(backing_block, content_block),
+        actions: btrfs_device_actions(backing_block, content_block).concat(
+            [btrfs_create_subvolume_action(block_btrfs)]),
         component: BtrfsFilesystemCard,
         props: { backing_block, content_block },
     });

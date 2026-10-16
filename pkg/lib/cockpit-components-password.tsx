@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 import cockpit from 'cockpit';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { debounce } from 'throttle-debounce';
 import { Button } from '@patternfly/react-core/dist/esm/components/Button/index.js';
 import { FormGroup, FormHelperText } from "@patternfly/react-core/dist/esm/components/Form/index.js";
@@ -48,6 +48,22 @@ export function password_quality(password: string, force?: boolean): Promise<Pas
 
 const debounced_password_quality = debounce(300, (value: string, callback: (quality: PasswordQuality) => void) => {
     password_quality(value).catch(() => ({ value: 0 })).then(callback);
+});
+
+interface RawPasswordQuality {
+    ok: boolean;
+    value: number;
+}
+
+// Unlike password_quality() this does not reject for weak passwords, and it
+// reports whether pwscore was actually usable.  This lets callers hide the
+// strength meter entirely when pwscore is not installed instead of always
+// claiming that a password is weak.
+const debounced_raw_password_quality = debounce(300, (value: string, callback: (quality: RawPasswordQuality) => void) => {
+    cockpit.spawn(['/usr/bin/pwscore'], { err: "message" })
+            .input(value)
+            .done(content => callback({ ok: true, value: parseInt(content, 10) }))
+            .fail(() => callback({ ok: false, value: 0 }));
 });
 
 export const PasswordFormFields = ({
@@ -180,5 +196,73 @@ export const PasswordFormFields = ({
                 <FormHelper fieldId={idPrefix + "-pw2"} helperTextInvalid={error_password_confirm} />
             </FormGroup>}
         </>
+    );
+};
+
+// A standalone password strength meter, e.g. for passphrase fields that are not
+// part of a full PasswordFormFields setup (such as storage's LUKS dialogs).
+// It hides itself when pwscore is not available so that it never reports a
+// misleading "Weak" result.
+export const PasswordStrength = ({ password, idPrefix }: {
+    password: string,
+    idPrefix: string,
+}) => {
+    const [quality, setQuality] = useState<RawPasswordQuality>({ ok: true, value: -1 });
+    const passwordRef = useRef(password);
+    passwordRef.current = password;
+
+    useEffect(() => {
+        if (!password) {
+            setQuality({ ok: true, value: -1 });
+            return;
+        }
+        debounced_raw_password_quality(password, q => {
+            // Ignore results for a password that has since changed
+            if (passwordRef.current === password)
+                setQuality(q);
+        });
+    }, [password]);
+
+    if (!quality.ok || quality.value < 0)
+        return null;
+
+    let variant: ProgressProps['variant'];
+    let messageColor;
+    let message;
+    if (quality.value > 66) {
+        variant = "success";
+        messageColor = "pf-v6-u-success-color-200";
+        message = _("Strong password");
+    } else if (quality.value > 33) {
+        variant = "warning";
+        messageColor = "pf-v6-u-warning-color-200";
+        message = _("Acceptable password");
+    } else {
+        variant = "danger";
+        messageColor = "pf-v6-u-danger-color-200";
+        message = _("Weak password");
+    }
+    if (quality.value === 100)
+        message = _("Excellent password");
+
+    let value = quality.value;
+    if (value < 25)
+        value = 25;
+
+    return (
+        <Flex spaceItems={{ default: 'spaceItemsSm' }}>
+            <FlexItem>
+                <Progress id={idPrefix + "-meter"}
+                    className={"pf-v6-u-pt-xs ct-password-strength-meter " + variant}
+                    title={_("password quality")}
+                    size={ProgressSize.sm}
+                    measureLocation={ProgressMeasureLocation.none}
+                    variant={variant}
+                    value={value} />
+            </FlexItem>
+            <FlexItem>
+                <div id={idPrefix + "-password-meter-message"} className={"pf-v6-c-form__helper-text " + messageColor} aria-live="polite">{message}</div>
+            </FlexItem>
+        </Flex>
     );
 };

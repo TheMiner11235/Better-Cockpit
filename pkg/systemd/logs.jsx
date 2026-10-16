@@ -30,6 +30,8 @@ import {
     checkJournalctlGrep,
     getGrepFiltersFromOptions,
     getOptionsFromTextInput,
+    getTimeFilterOption,
+    timeFilterOptions,
 } from "./logsHelpers.js";
 import { JournalBox } from "./logsJournal.jsx";
 import { LogEntry } from "./logDetails.jsx";
@@ -39,13 +41,6 @@ import { usePageLocation } from "hooks";
 import "./logs.scss";
 
 const _ = cockpit.gettext;
-
-const timeFilterOptions = [
-    { key: 1, value: { key: "boot", value: 0 }, content: _("Current boot") },
-    { key: 2, value: { key: "boot", value: "-1" }, content: _("Previous boot") },
-    { key: 3, value: { key: "since", value: "-24hours", default: true }, content: _("Last 24 hours") },
-    { key: 4, value: { key: "since", value: "-7days" }, content: _("Last 7 days") },
-];
 
 const journalPrioOptions = [
     { value: "emerg", content: _("Only emergency") },
@@ -61,17 +56,6 @@ const journalPrioOptions = [
 const getPrioFilterOption = options => {
     // `prio` is a legacy name. Accept it, but don't generate it
     return options.priority || options.prio;
-};
-
-const getTimeFilterOption = options => {
-    function find_key(key, value) {
-        return timeFilterOptions.find(o => o.value.key == key && o.value.value == value)?.value;
-    }
-    if (options.boot)
-        return find_key('boot', options.boot);
-    else if (options.since)
-        return find_key('since', options.since);
-    return timeFilterOptions.find(option => 'default' in option.value)?.value; // Use the default key
 };
 
 export const LogsPage = () => {
@@ -248,7 +232,6 @@ export const LogsPage = () => {
                          id="journal-box"
                          className="journal-filters-box">
                 <JournalBox dataFollowing={dataFollowing}
-                            defaultSince={timeFilter ? timeFilter.value : getTimeFilterOption({}).value}
                             currentIdentifiers={currentIdentifiers}
                             setCurrentIdentifiers={setCurrentIdentifiers}
                             setFilteredQuery={setFilteredQuery}

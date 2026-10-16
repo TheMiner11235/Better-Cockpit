@@ -1119,19 +1119,65 @@ export function get_mount_points(client, block_fsys, subvol) {
     return mounted_at;
 }
 
+/*
+ * Parse a number that may use the localized decimal separator, as
+ * produced by cockpit.format_number (e.g. "16,5" in a Czech or German
+ * locale).  Returns NaN when the text is not a valid number.
+ */
+export function parse_number(text) {
+    if (typeof text === "number")
+        return text;
+    if (text === null || text === undefined)
+        return NaN;
+
+    const lang = cockpit.language === undefined ? undefined : cockpit.language.replace('_', '-');
+    // The localized grouping (thousands) separator, e.g. "," for "en"
+    // or "\u00a0" for "cs".
+    const thousandsSeparator = (1000).toLocaleString(lang).replace(/[0-9]/g, "");
+    // The localized decimal separator, e.g. "," or ".".
+    const decimalSeparator = (1.1).toLocaleString(lang).replace(/[0-9]/g, "");
+
+    let str = String(text).trim();
+    if (thousandsSeparator)
+        str = str.split(thousandsSeparator).join("");
+    // Also drop any plain spaces used as grouping separators.
+    str = str.replace(/\s/g, "");
+    if (decimalSeparator && decimalSeparator !== ".")
+        str = str.split(decimalSeparator).join(".");
+
+    if (str === "")
+        return NaN;
+
+    return Number(str);
+}
+
 export function get_byte_units(guide_value) {
+    // Offer base-2 units (and plain bytes) in addition to the decimal
+    // units so that exact binary sizes such as 16 MiB can be entered.
+    // https://github.com/cockpit-project/cockpit/issues/21760
     const units = [
+        { factor: 1, name: "B" },
+        { factor: 1024, name: "KiB" },
         { factor: 1000 ** 2, name: "MB" },
+        { factor: 1024 ** 2, name: "MiB" },
         { factor: 1000 ** 3, name: "GB" },
+        { factor: 1024 ** 3, name: "GiB" },
         { factor: 1000 ** 4, name: "TB" },
+        { factor: 1024 ** 4, name: "TiB" },
     ];
-    // Find the biggest unit which gives two digits left of the decimal point (>= 10)
-    let unit;
-    for (unit = units.length - 1; unit >= 0; unit--)
-        if (guide_value / units[unit].factor >= 10)
+    // Find the biggest decimal unit which gives two digits left of the
+    // decimal point (>= 10).  Only decimal units are selected
+    // automatically; the base-2 units are offered as extra choices.
+    const is_decimal = u => u.factor === 1000 ** 2 || u.factor === 1000 ** 3 || u.factor === 1000 ** 4;
+    let selected_unit = units.find(u => u.factor === 1000 ** 2);
+    for (let i = units.length - 1; i >= 0; i--) {
+        if (is_decimal(units[i]) && guide_value / units[i].factor >= 10) {
+            selected_unit = units[i];
             break;
-    // Mark it selected.  If we couldn't find one (-1), then use MB.
-    units[Math.max(0, unit)].selected = true;
+        }
+    }
+    // Mark it selected.  If we couldn't find one, then use MB.
+    selected_unit.selected = true;
     return units;
 }
 

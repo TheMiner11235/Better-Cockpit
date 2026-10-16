@@ -13,6 +13,10 @@ const info = {
         "networkmanager/networkmanager.jsx",
         "networkmanager/firewall.jsx",
 
+        "oled-nova-core/dashboard.js",
+        "oled-nova-core/terminal.js",
+        "oled-nova-storage/index.js",
+
         "playground/index.js",
         "playground/exception.js",
         "playground/metrics.js",
@@ -105,6 +109,12 @@ const info = {
 
         "networkmanager/index.html",
         "networkmanager/firewall.html",
+
+        "oled-nova-core/index.html",
+        "oled-nova-core/terminal.html",
+        "oled-nova-core/style.css",
+        "oled-nova-storage/index.html",
+        "oled-nova-storage/style.css",
 
         "packagekit/index.html",
 

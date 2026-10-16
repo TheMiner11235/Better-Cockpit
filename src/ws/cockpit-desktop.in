@@ -106,8 +106,8 @@ esac
 detect_browser
 
 # start the bridge; this needs to run in the normal user session/namespace
-coproc ${2:+ssh "$2"} cockpit-bridge
-trap "kill $COPROC_PID; wait $COPROC_PID || true" EXIT INT QUIT PIPE
+if [ -n "${2:-}" ]; then command -v ssh >/dev/null 2>&1 || { echo "ssh not found" >&2; exit 127; }; coproc ssh "$2" cockpit-bridge; else command -v cockpit-bridge >/dev/null 2>&1 || { echo "cockpit-bridge not found. Is cockpit installed?" >&2; exit 127; }; coproc cockpit-bridge; fi
+trap 'kill $COPROC_PID 2>/dev/null || true; wait $COPROC_PID 2>/dev/null || true' EXIT INT QUIT PIPE
 
 # start ws and browser in a detached network namespace
 SCRIPT='
@@ -140,3 +140,5 @@ fi
 HOME="$BROWSER_HOME" '$BROWSER' http://127.0.0.90'"$URL_PATH"'
 '
 unshare --user --map-root-user --net /bin/bash -c "$SCRIPT" <&${COPROC[0]} >&${COPROC[1]}
+
+

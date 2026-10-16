@@ -1,0 +1,18 @@
+{
+    "version": 0,
+    "name": "storage",
+    "priority": 10,
+    "requires": {
+        "cockpit": "230"
+    },
+    "menu": {
+        "index": {
+            "label": "File Studio",
+            "order": 30,
+            "keywords": [
+                { "matches": ["file", "studio", "storage", "files", "editor", "browse", "upload", "directory", "filesystem", "folder"] }
+            ]
+        }
+    },
+    "content-security-policy": "style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+}

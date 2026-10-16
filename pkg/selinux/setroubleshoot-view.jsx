@@ -383,14 +383,37 @@ export class SETroubleshootPage extends React.Component {
                 if (this.state.selected[k])
                     this.props.deleteAlert(k).then(() => this.setState(prevState => ({ selected: { ...prevState.selected, [k]: false } })));
         };
+        const onSelectAll = () => {
+            const all = {};
+            if (this.props.entries) {
+                for (const e of this.props.entries) {
+                    if (e && e.key)
+                        all[e.key] = true;
+                }
+            }
+            this.setState({ selected: all });
+        };
+        const onDeselectAll = () => {
+            this.setState({ selected: {} });
+        };
+        const allSelected = this.props.entries && this.props.entries.length > 0 &&
+            Object.keys(this.state.selected).filter(k => this.state.selected[k]).length === this.props.entries.length;
         const actions = (
             !emptyState
-                ? <Button className="selinux-alert-dismiss"
-                variant="danger"
-                onClick={onDeleteClick}
-                isDisabled={ !this.props.deleteAlert || !selectedCnt}>
-                    {selectedCnt ? cockpit.format(cockpit.ngettext("Dismiss $0 alert", "Dismiss $0 alerts", selectedCnt), selectedCnt) : _("Dismiss selected alerts")}
-                </Button>
+                ? <>
+                    <Button className="selinux-alert-select-all"
+                    variant="secondary"
+                    onClick={allSelected ? onDeselectAll : onSelectAll}
+                    isDisabled={ !this.props.entries || this.props.entries.length === 0 }>
+                        {allSelected ? _("Deselect all") : _("Select all")}
+                    </Button>
+                    <Button className="selinux-alert-dismiss"
+                    variant="danger"
+                    onClick={onDeleteClick}
+                    isDisabled={ !this.props.deleteAlert || !selectedCnt}>
+                        {selectedCnt ? cockpit.format(cockpit.ngettext("Dismiss $0 alert", "Dismiss $0 alerts", selectedCnt), selectedCnt) : _("Dismiss selected alerts")}
+                    </Button>
+                </>
                 : null
         );
         const troubleshooting = (

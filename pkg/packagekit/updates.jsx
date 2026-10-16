@@ -130,6 +130,53 @@ function cleanupChangelogLine(text) {
     return text.trim();
 }
 
+// True if the current OS uses the Red Hat issue trackers (RHEL, Fedora, CentOS).
+// On other distributions "rhbz#123" style references would not resolve, so we
+// leave such changelog text alone there.
+function usesRedHatBugTrackers() {
+    const release = cockpit.info.os_release;
+    if (!release)
+        return false;
+    const ids = [release.ID, release.ID_LIKE, release.PLATFORM_ID]
+            .filter(Boolean).join(" ").toLowerCase();
+    return /(^|\s)(rhel|fedora|centos)(\s|$)/.test(ids);
+}
+
+// Replace tracker references like "rhbz#12345", "bz#12345", "RHBZ #12345", or
+// "jira#12345" in changelog text with links to the matching Red Hat tracker.
+// Returns the original string when there is nothing to link.
+function linkifyBugReferences(text) {
+    if (!text || !usesRedHatBugTrackers())
+        return text;
+
+    const pattern = /(rhbz|bz|jira)\s*#\s*(\d+)/gi;
+    const nodes = [];
+    let lastIndex = 0;
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+        if (match.index > lastIndex)
+            nodes.push(text.slice(lastIndex, match.index));
+
+        const tracker = match[1].toLowerCase();
+        const id = match[2];
+        const href = tracker === "jira"
+            ? `https://issues.redhat.com/browse/${id}`
+            : `https://bugzilla.redhat.com/${id}`;
+        nodes.push(
+            <a key={`${tracker}-${id}-${match.index}`} rel="noopener noreferrer" target="_blank" href={href}>
+                {match[0]}
+            </a>
+        );
+        lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex === 0)
+        return text;
+    if (lastIndex < text.length)
+        nodes.push(text.slice(lastIndex));
+    return nodes;
+}
+
 // Replace cockpit-wsinstance-https@[long_id] with a shorter string
 function shortenCockpitWsInstance(list) {
     return list.map(item => item.startsWith('cockpit-wsinstance-https') ? 'cockpit-wsinstance-https@.' : item);
@@ -325,7 +372,8 @@ function updateItem(info, pkgNames, key) {
         descriptionFirstLine = <Markdown options={markdownOptions}>{descriptionFirstLine}</Markdown>;
         description = <Markdown options={{ ...markdownOptions, forceInline: false }}>{info.description}</Markdown>;
     } else {
-        description = <div className="changelog">{info.description}</div>;
+        descriptionFirstLine = linkifyBugReferences(descriptionFirstLine);
+        description = <div className="changelog">{linkifyBugReferences(info.description)}</div>;
     }
 
     const expandedContent = (

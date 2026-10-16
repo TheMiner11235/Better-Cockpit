@@ -48,6 +48,16 @@
   align-items: baseline;
   flex-wrap: wrap;
 
+  > .terminal-title {
+    /* Center the terminal title in the space left of the toolbar */
+    flex: 1;
+    min-inline-size: 0;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   > .pf-v6-c-toolbar {
     padding: 0;
 

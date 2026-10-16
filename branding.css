@@ -1,0 +1,203 @@
+/*
+ * oled-nova-core branding
+ * OLED dark-purple theme for Cockpit 287 shell + autohiding sidebar.
+ * Loaded as /cockpit/static/branding.css (resolves from /etc/cockpit/branding/
+ * before the Debian/default branding roots). Overrides are declared with
+ * !important on custom properties so they win over the built-in
+ * `.pf-theme-dark .area-ct-subnav` rules regardless of source order.
+ */
+
+:root {
+    /* OLED palette: true-black base, violet accent */
+    --on-bg: #000000;
+    --on-surface: #08080c;
+    --on-surface-2: #0e0e16;
+    --on-surface-3: #16161f;
+    --on-border: #232330;
+    --on-border-strong: #34344b;
+    --on-text: #ececf5;
+    --on-text-dim: #8b8ba6;
+    --on-accent: #a855f7;
+    --on-accent-soft: #c084fc;
+    --on-accent-deep: #7c3aed;
+    --on-masthead-h: 70px;
+    --on-nav-width: 15rem;
+    --on-ease: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ---------- OLED remap of the PatternFly dark palette ---------- */
+:root,
+html,
+body,
+html.pf-theme-dark,
+.pf-theme-dark {
+    --pf-global--BackgroundColor--100: var(--on-surface-2) !important;
+    --pf-global--BackgroundColor--150: var(--on-surface) !important;
+    --pf-global--BackgroundColor--200: var(--on-bg) !important;
+    --pf-global--BackgroundColor--300: var(--on-surface-3) !important;
+    --pf-global--BackgroundColor--400: var(--on-border-strong) !important;
+    --pf-global--BackgroundColor--dark-100: var(--on-surface-2) !important;
+    --pf-global--BackgroundColor--dark-200: var(--on-bg) !important;
+    --pf-global--BackgroundColor--dark-300: var(--on-surface) !important;
+    --pf-global--BackgroundColor--dark-400: var(--on-surface-3) !important;
+    --pf-global--BackgroundColor--light-100: var(--on-surface-2) !important;
+    --pf-global--BackgroundColor--light-200: var(--on-bg) !important;
+    --pf-global--BackgroundColor--light-300: var(--on-surface-3) !important;
+
+    --pf-global--BorderColor--100: var(--on-border) !important;
+    --pf-global--BorderColor--200: var(--on-border) !important;
+    --pf-global--BorderColor--300: var(--on-border-strong) !important;
+    --pf-global--BorderColor--400: var(--on-text-dim) !important;
+
+    --pf-global--Color--100: var(--on-text) !important;
+    --pf-global--Color--200: var(--on-text-dim) !important;
+    --pf-global--Color--dark-100: var(--on-text) !important;
+    --pf-global--Color--dark-200: var(--on-text-dim) !important;
+    --pf-global--Color--light-100: var(--on-text) !important;
+    --pf-global--Color--light-200: var(--on-text-dim) !important;
+
+    --pf-global--active-color--100: var(--on-accent) !important;
+    --pf-global--primary-color--100: var(--on-accent) !important;
+    --pf-global--primary-color--light-100: var(--on-accent) !important;
+    --pf-global--primary-color--dark-100: var(--on-accent) !important;
+    --pf-global--link--Color: var(--on-accent) !important;
+    --pf-global--link--Color--hover: var(--on-accent-soft) !important;
+    --pf-global--link--Color--visited: #d8b4fe !important;
+    --pf-global--link--Color--light: var(--on-accent) !important;
+    --pf-global--link--Color--light--hover: var(--on-accent-soft) !important;
+    --pf-global--link--Color--dark: var(--on-accent) !important;
+    --pf-global--link--Color--dark--hover: var(--on-accent-soft) !important;
+    --pf-global--icon--Color--light: var(--on-text-dim) !important;
+    --pf-global--icon--Color--dark: var(--on-text-dim) !important;
+
+    /* Cockpit-specific tokens */
+    --ct-color-bg: var(--on-surface-2) !important;
+    --ct-color-fg: var(--on-text) !important;
+    --ct-color-border: var(--on-border) !important;
+    --ct-color-text: var(--on-text) !important;
+    --ct-color-subtle-copy: var(--on-text-dim) !important;
+    --ct-color-host-accent: var(--on-accent) !important;
+    --ct-topnav-background: var(--on-surface-2) !important;
+    --ct-color-nav-menu: var(--on-surface) !important;
+    --ct-color-nav-search: var(--on-bg) !important;
+    --ct-color-nav-highlight: var(--on-accent-deep) !important;
+    --ct-color-nav-highlight-text: #ffffff !important;
+    --ct-color-link: var(--on-accent) !important;
+    --ct-color-link-hover-bg: rgba(168, 85, 247, .14) !important;
+    --ct-color-list-bg: var(--on-surface-2) !important;
+    --ct-color-list-border: var(--on-border) !important;
+    --ct-color-list-hover-bg: var(--on-surface-3) !important;
+    --ct-color-list-selected-bg: rgba(168, 85, 247, .18) !important;
+    --ct-color-light-red: #ff7468 !important;
+    --ct-color-red-hat-red: var(--on-accent) !important;
+}
+
+/* True-black canvas so no grey flashes through / around frames */
+html,
+body {
+    background: var(--on-bg) !important;
+}
+
+/* ---------- Masthead ---------- */
+.page>.header {
+    border-bottom: 1px solid var(--on-border) !important;
+}
+
+.page>.header,
+.page>.navbar,
+.page>.sidebar-toggle {
+    background: linear-gradient(to bottom, var(--on-accent), var(--on-accent) 2px, transparent 2px),
+        var(--on-surface-2) !important;
+}
+
+#topnav .pf-c-masthead,
+header.pf-c-masthead {
+    background: transparent !important;
+}
+
+/* ---------- Sidebar: autohide overlay ---------- */
+@media (min-width: 768px) {
+    .page {
+        grid-template-columns: max-content 1fr !important;
+        grid-template-areas: "switcher header" "main main" !important;
+        overflow: hidden !important;
+    }
+
+    .page>.area-ct-content {
+        grid-area: main !important;
+    }
+
+    .page>.header {
+        grid-area: header !important;
+    }
+
+    .page>#hosts-sel {
+        grid-area: switcher !important;
+    }
+
+    .page>#nav-hosts {
+        grid-area: auto !important;
+        display: none !important;
+    }
+
+    .page>#nav-system {
+        position: fixed !important;
+        top: var(--on-masthead-h);
+        left: 0;
+        bottom: 0;
+        width: var(--on-nav-width);
+        height: auto !important;
+        grid-area: auto !important;
+        z-index: 320;
+        overflow-y: auto;
+        background: linear-gradient(180deg, var(--on-surface-2), var(--on-surface)) !important;
+        border-right: 1px solid var(--on-border-strong);
+        box-shadow: 2px 0 0 0 var(--on-accent-deep), 14px 0 44px rgba(0, 0, 0, .72);
+        transform: translateX(calc(-100% + 12px));
+        transition: transform .22s var(--on-ease);
+        will-change: transform;
+    }
+
+    /* neutralize the built-in 1px border box so our own border/edge shows */
+    .page>#nav-system::after {
+        display: none !important;
+    }
+
+    .page>#nav-system:hover,
+    .page>#nav-system:focus-within {
+        transform: translateX(0);
+    }
+
+    /* keep the nav readable when revealed as an overlay */
+    #nav-system .pf-c-nav__link.pf-m-current {
+        background: var(--on-accent-deep) !important;
+        color: #ffffff !important;
+    }
+}
+
+/* Respect reduced-motion: disable the slide */
+@media (prefers-reduced-motion: reduce) {
+    .page>#nav-system {
+        transition: none !important;
+    }
+}
+
+/* ---------- Scrollbars ---------- */
+* {
+    scrollbar-color: var(--on-border-strong) transparent;
+}
+
+/* ---------- Login page (replaces Debian default artwork) ---------- */
+body.login-pf {
+    background: radial-gradient(1200px 600px at 50% -10%, rgba(124, 58, 237, .28), transparent 60%), var(--on-bg) !important;
+    color: var(--on-text);
+}
+
+body.login-pf #brand,
+body.login-pf .container-fluid {
+    color: var(--on-text);
+}
+
+body.login-pf #badge {
+    background-color: transparent;
+}
