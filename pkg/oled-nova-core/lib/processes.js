@@ -59,6 +59,14 @@ export class ProcessList {
         this._error = null;
         this._open = false;
         this._interval = interval;
+        /* Show only the current user's processes by default. */
+        this._user = null;
+        this._user_only = true;
+        cockpit.user().then(u => {
+            this._user = u && u.name;
+            if (this._open)
+                this._render();
+        }).catch(() => {});
 
         this.element = document.createElement("div");
         this.element.className = "on-processes";
@@ -89,21 +97,41 @@ export class ProcessList {
             this._filter = this._search.value.toLowerCase();
             this._render();
         });
+        this._user_btn = document.createElement("button");
+        this._user_btn.className = "on-btn on-on";
+        this._user_btn.textContent = "Mine";
+        this._user_btn.title = "Show only my processes";
+        this._user_btn.addEventListener("click", () => {
+            this._user_only = !this._user_only;
+            this._user_btn.textContent = this._user_only ? "Mine" : "All";
+            this._user_btn.classList.toggle("on-on", this._user_only);
+            this._render();
+        });
         const refresh = document.createElement("button");
         refresh.className = "on-btn";
         refresh.textContent = "↻ Refresh";
         refresh.addEventListener("click", () => this.refresh());
-        const kill = document.createElement("button");
-        kill.className = "on-btn on-btn-danger";
-        kill.textContent = "⨯ End process";
-        kill.addEventListener("click", () => this._kill_selected());
-        toolbar.append(this._search, refresh, kill);
+        toolbar.append(this._search, this._user_btn, refresh);
 
         this._wrap = document.createElement("div");
         this._wrap.className = "on-table-wrap";
 
         this._body.append(toolbar, this._wrap);
         this.element.append(header, this._body);
+
+        /* Del ends the selected process (only while the list is open and no
+         * input/modal has focus). */
+        this._on_key = ev => {
+            if (!this._open || this._selected == null || ev.key !== "Delete")
+                return;
+            const t = ev.target;
+            if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable))
+                return;
+            if (document.querySelector(".on-modal-backdrop"))
+                return;
+            ev.preventDefault();
+            this._kill_selected();
+        };
     }
 
     get is_open() {
@@ -121,6 +149,7 @@ export class ProcessList {
         this._open = true;
         this._caret.textContent = "▾";
         this._body.style.display = "";
+        document.addEventListener("keydown", this._on_key);
         this.refresh();
         if (!this._timer)
             this._timer = setInterval(() => this.refresh(), this._interval);
@@ -130,6 +159,7 @@ export class ProcessList {
         this._open = false;
         this._caret.textContent = "▸";
         this._body.style.display = "none";
+        document.removeEventListener("keydown", this._on_key);
         if (this._timer) {
             clearInterval(this._timer);
             this._timer = null;
@@ -168,6 +198,8 @@ export class ProcessList {
 
     _visible_rows() {
         let rows = this._rows;
+        if (this._user_only && this._user)
+            rows = rows.filter(r => r.user === this._user);
         if (this._filter) {
             rows = rows.filter(r =>
                 r.command.toLowerCase().includes(this._filter) ||

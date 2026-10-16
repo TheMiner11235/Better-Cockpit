@@ -73,10 +73,6 @@ export class FileStudio {
         this.element = document.createElement("div");
         this.element.className = "on-page on-files-page";
 
-        const head = document.createElement("div");
-        head.innerHTML = "<h2 class='on-view-title'>File Studio</h2>" +
-            "<p class='on-view-sub'>Browse, edit (CodeMirror), upload and manage files. Right-click for actions.</p>";
-
         const layout = document.createElement("div");
         layout.className = "on-files-layout";
 
@@ -100,7 +96,7 @@ export class FileStudio {
         list_panel.append(this._crumb, this._list);
         layout.append(tree_panel, list_panel);
 
-        this.element.append(head, layout);
+        this.element.append(layout);
 
         this._context = document.createElement("div");
         this._context.className = "on-context";

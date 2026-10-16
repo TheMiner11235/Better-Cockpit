@@ -1,0 +1,18 @@
+{
+    "version": 0,
+    "name": "software",
+    "priority": 10,
+    "requires": {
+        "cockpit": "230"
+    },
+    "menu": {
+        "index": {
+            "label": "Software",
+            "order": 40,
+            "keywords": [
+                { "matches": ["software", "packages", "apps", "applications", "install", "remove", "uninstall", "programs", "repository", "updates"] }
+            ]
+        }
+    },
+    "content-security-policy": "style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+}

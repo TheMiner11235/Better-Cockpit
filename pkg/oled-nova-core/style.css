@@ -96,6 +96,64 @@ button {
     gap: 16px;
 }
 
+/* page header + rings/graphs view toggle */
+.on-page-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.on-view-toggle.on-active {
+    color: var(--on-accent);
+}
+
+.on-graphs-view {
+    display: none;
+}
+
+.on-graph-mode .on-rings-view {
+    display: none;
+}
+
+.on-graph-mode .on-graphs-view {
+    display: grid;
+}
+
+.on-graph-card {
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.on-graph-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.on-graph-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--on-text-dim);
+    font-weight: 600;
+}
+
+.on-graph-val {
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.on-graph-canvas {
+    width: 100%;
+    height: 96px;
+    display: block;
+}
+
 .on-card {
     background: linear-gradient(180deg, var(--on-surface-2), var(--on-surface));
     border: 1px solid var(--on-border);
@@ -158,6 +216,96 @@ button {
     letter-spacing: 0.05em;
     text-transform: uppercase;
     font-weight: 600;
+}
+
+.on-ring-sub {
+    font-size: 11.5px;
+    color: var(--on-text-faint);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    min-height: 15px;
+}
+
+/* small rings (disk read/write/temp/space) */
+.on-ring-card-sm {
+    padding: 10px 8px;
+    gap: 4px;
+}
+
+.on-ring-card-sm .on-ring-svg {
+    width: 72px;
+    height: 72px;
+}
+
+.on-ring-card-sm .on-ring-label {
+    font-size: 15px;
+}
+
+.on-ring-card-sm .on-ring-unit {
+    font-size: 9px;
+}
+
+.on-ring-card-sm .on-ring-title {
+    font-size: 10px;
+    letter-spacing: 0.03em;
+}
+
+/* grouped rings inside one card */
+.on-card.on-span-2 {
+    grid-column: span 2;
+}
+
+.on-ring-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.on-group-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--on-text-dim);
+}
+
+.on-group-rings {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px;
+    justify-items: center;
+    align-items: start;
+}
+
+.on-group-rings .on-card.on-ring-card {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    flex: 0 0 auto;
+}
+
+.on-group-rings .on-ring-card:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.on-info-more {
+    margin-top: 12px;
+    color: var(--on-accent);
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.on-metrics-table .on-kv-val {
+    max-width: 60%;
+}
+
+@media (max-width: 620px) {
+    .on-card.on-span-2 {
+        grid-column: span 1;
+    }
 }
 
 .on-info-card h3 {
@@ -257,6 +405,12 @@ button {
 .on-btn.on-btn-danger:hover {
     background: rgba(239, 68, 68, 0.18);
     border-color: var(--on-red);
+}
+
+.on-btn.on-on {
+    background: var(--on-accent-soft);
+    border-color: var(--on-accent-2);
+    color: var(--on-text);
 }
 
 .on-btn:disabled {
@@ -394,6 +548,7 @@ button {
 /* ---------------- terminal ---------------- */
 body.on-term-body {
     overflow: hidden;
+    background: var(--on-term-bg, var(--on-bg)) !important;
 }
 
 .on-term-page {
@@ -404,7 +559,7 @@ body.on-term-body {
 .on-term-wrap {
     position: absolute;
     inset: 0;
-    background: #000;
+    background: var(--on-term-bg, transparent);
     padding: 6px 4px 4px;
     overflow: hidden;
 }
@@ -417,10 +572,6 @@ body.on-term-body {
 .on-term-host .xterm {
     height: 100%;
     padding: 0 4px;
-}
-
-.on-term-host .xterm-viewport {
-    background: transparent !important;
 }
 
 .on-term-bar {

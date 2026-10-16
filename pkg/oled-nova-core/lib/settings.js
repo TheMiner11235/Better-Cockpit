@@ -31,7 +31,7 @@ export const TERM_THEMES = {
         background: "#000000",
         foreground: "#e6e6e6",
         cursor: "#e6e6e6",
-        selectionBackground: "#ffffff33",
+        selectionBackground: "#a855f744",
         black: "#2e3436",
         red: "#cc0000",
         green: "#4e9a06",

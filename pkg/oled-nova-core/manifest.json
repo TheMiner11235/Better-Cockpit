@@ -6,16 +6,15 @@
     },
     "menu": {
         "index": {
-            "label": "Monitor",
-            "order": 15,
+            "label": "Overview",
+            "order": 10,
             "keywords": [
-                { "matches": ["monitor", "dashboard", "rings", "cpu", "memory", "process", "performance", "task manager", "metrics", "load"] }
+                { "matches": ["overview", "monitor", "dashboard", "rings", "graphs", "cpu", "memory", "process", "performance", "task manager", "metrics", "load", "system information"] }
             ]
-        }
-    },
-    "tools": {
+        },
         "terminal": {
             "label": "Terminal",
+            "order": 90,
             "keywords": [
                 { "matches": ["terminal", "console", "command", "shell", "bash"] }
             ]

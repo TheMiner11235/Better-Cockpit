@@ -56,6 +56,7 @@ export class TerminalPage {
     async start(home) {
         this._home = home || "/";
         apply(this._settings);
+        this._apply_term_bg();
         if (!this._term) {
             this._term = new Terminal({
                 cursorBlink: this._settings.term_cursor_blink,
@@ -93,6 +94,7 @@ export class TerminalPage {
 
     apply_settings(settings) {
         this._settings = settings;
+        this._apply_term_bg();
         if (this._term) {
             const opts = this._term.options;
             opts.fontSize = settings.term_font_size;
@@ -104,6 +106,11 @@ export class TerminalPage {
             opts.macOptionIsMeta = settings.term_meta;
             this._fit_term();
         }
+    }
+
+    _apply_term_bg() {
+        const theme = term_theme(this._settings);
+        document.documentElement.style.setProperty("--on-term-bg", (theme && theme.background) || "#000000");
     }
 
     _toggle_fullscreen() {

@@ -105,4 +105,104 @@ Timestamp: 2026-10-14 23:30:00
   ```
   (the pre-theme original Debian file is backed up there; the pre-existing full package backup is `/home/n/cockpit-backup-20261014-214113/`).
 
+---
+
+## oled-nova UI rework (Tasks 1-8)
+
+Timestamp: 2026-10-15 20:50:33
+
+### 1. File Studio: remove title + subhead
+- **Files**: pkg/oled-nova-storage/lib/filestudio.js
+- **Status**: patched - dropped the `File Studio` title and `CodeMirror` subhead `head` block; `this.element.append(head, layout)` -> `append(layout)`.
+
+### 2. Terminal theme fix (themes did not apply)
+- **Files**: pkg/oled-nova-core/terminal.html, pkg/oled-nova-core/style.css, pkg/oled-nova-core/lib/termpage.js
+- **Status**: patched - removed the dead `terminal.css` `<link>`; removed the forced `.xterm-viewport { background: transparent !important }` that defeated theme backgrounds; `.on-term-wrap` and `body.on-term-body` now use `var(--on-term-bg, ...)`. Added `TerminalPage._apply_term_bg()` which sets `--on-term-bg` from `term_theme(...).background`, called from `start()` and `apply_settings()`.
+- **Verified live**: stock `#000`, `dracula` -> `rgb(40,42,54)`, `solarized` -> `rgb(0,43,54)`; viewport stays transparent so the themed wrap shows through.
+
+### 3. Monitor merged Overview rework
+- **Files**: pkg/oled-nova-core/{dashboard.js,style.css,manifest.json,index.html}, pkg/oled-nova-core/lib/{metrics.js,rings.js}
+- **Status**: patched - new `lib/metrics.js` (DiskIo, PowerSampler, disk_temperature, top_processes, format helpers) and `lib/rings.js` small-ring variant; `dashboard.js` rewritten: CPU/MEM rings show top process + PID under the title, Disk becomes a 4-small-ring card (read/write/temp/used, `on-span-2`), Power (W) + CPU temp (°C) card replaces the mislabeled ring, Host card is clickable -> full metrics modal (Model, Machine ID, Asset tag, live system time, uptime, perf profile, SSH keys). Sampling loop hardened (`Promise.allSettled` + `busy` guard + try/catch, 1s tick, slow sensors every 3rd tick). Manifest label "Overview" order 10.
+- **Verified live**: 68 ring nodes, CPU `cockpit-bridge · 628018` / MEM `java · 553758` subs, Disk group (4 rings) + Power & thermal group (2 rings), info modal opens with 7 live rows.
+
+### 4. Sidebar sliver / content offset
+- **Files**: branding.css
+- **Status**: patched - added `--on-sliver: 12px`; `.page > .area-ct-content { margin-left: var(--on-sliver) !important }`; `#nav-system` transform uses `calc(-100% + var(--on-sliver))`.
+- **Verified live**: `--on-sliver` 12px, content margin-left 12px, nav transform `-228px` (sliver visible).
+
+### 5. Shell chrome theming (CSS-only; no pkg/shell rebuild on 287)
+- **Files**: branding.css
+- **Status**: patched - appended `.pf-c-masthead`, `#topnav`, `.pf-c-dropdown__menu*`, `.pf-c-popover__content`, `#hosts-sel`, `.pf-c-divider` overrides.
+- **Verified live**: masthead bg `rgb(14,14,22)`, body `#000`.
+
+### 6. Built-in package frames (287 Services + generic PF v4)
+- **Files**: branding.css
+- **Status**: patched - appended Services rules (`.services-header/toolbar`, `.services-list`, `.ct-card*`, `.service-unit-*`, `.status-*`, `.cockpit-log-*`) and generic PF v4 surfaces (`.pf-c-page__main-section`, `.pf-c-card`, `.pf-c-toolbar`, `.pf-c-table`, `.pf-c-nav__link.pf-m-current`). Note: the 287 built-in `systemd`/`packagekit` frames do **not** link `branding.css`, so the deploy step injects `static/branding.css` into `systemd/{services.html,index.html}`.
+- **Verified live**: services frame has `branding.css` linked, `pf-theme-dark`, body `#000`, card bg `rgb(8,8,12)`.
+
+### 7. New package: `oled-nova-packages` (Software)
+- **Files**: pkg/oled-nova-packages/{manifest.json,index.html,index.js,style.css,lib/catalog.js}, files.js
+- **Status**: added - manifest name `software` (`menu.index` label "Software", order 40). Four tabs: Updates (PackageKit `get_updates`/`update_packages`), Installed (filter list), Available (repo search), Recommended (derived from installed packages via `lib/catalog.js` CATEGORIES/RELATED graph). Busy overlay + cancel + error toast; reuses `pkg/lib/packagekit.js`.
+- **Verified live**: Updates "The system is up to date.", Installed 600 rows filterable, Available search ready, Recommended 18 rows ("Based on the packages already installed on this system.", e.g. apache2 "You use nginx — more web serving").
+
+### 8. Deploy (server, Cockpit 287)
+- **Tarball**: `/tmp/on.tgz` (1,880,603 B) extracted to `/usr/share/cockpit/` (adds `oled-nova-packages`).
+- **Branding**: copied to `/usr/share/cockpit/branding/debian/branding.css`.
+- **Frame link injection**: `static/branding.css` inserted into `/usr/share/cockpit/systemd/{services.html,index.html}` (1 occurrence each).
+- **Override change**: `systemd.override.json` is now `{"menu":{"logs":null,"index":null},"tools":{"terminal":null}}` (hides the built-in Overview) and `packagekit.override.json` is now `{"tools":null}` (hides the built-in Updates tool, superseding the earlier label-only override).
+- **Verified live (headless Chrome)**: nav is exactly `Overview, File Studio, Software, Services, Terminal`; all four oled-nova pages and Services render themed; built-in Overview + Updates hidden.
+- **Rollback**:
+  ```
+  sudo rm -rf /usr/share/cockpit/oled-nova-core /usr/share/cockpit/oled-nova-storage /usr/share/cockpit/oled-nova-packages
+  sudo cp -a /home/n/cockpit-backup-20261015-205033/debian-branding.css    /usr/share/cockpit/branding/debian/branding.css
+  sudo cp -a /home/n/cockpit-backup-20261015-205033/systemd-services.html  /usr/share/cockpit/systemd/services.html
+  sudo cp -a /home/n/cockpit-backup-20261015-205033/systemd-index.html     /usr/share/cockpit/systemd/index.html
+  sudo cp -a /home/n/cockpit-backup-20261015-205033/*.override.json        /etc/cockpit/
+  sudo systemctl restart cockpit.socket cockpit
+  ```
+  Backup: `/home/n/cockpit-backup-20261015-205033/` (flat: `debian-branding.css`, `systemd-services.html`, `systemd-index.html`, and `{apps,machines,networkmanager,packagekit,systemd,users}.override.json`).
+
+---
+
+## oled-nova UI rework (Task batch 2)
+
+Timestamp: 2026-10-15 21:40:50
+
+### 9. Terminal: missing xterm.css (hashes line + top-left artifacts)
+- **Files**: pkg/oled-nova-core/terminal.html
+- **Root cause**: the build emits `terminal.css` (bundled `@xterm/xterm/css/xterm.css`) but `terminal.html` never linked it. Without it, `.xterm-helper-textarea` renders visible at the top-left (the "resize icon") and `.xterm-width-cache-measure-container` / `.xterm-char-measure-element` render their `$$$$…` / `~~~~…` test text inline (the "hashes line above the typing line").
+- **Status**: patched - re-added `<link href="terminal.css" rel="stylesheet">`.
+- **Verified live**: frame links `style.css` + `terminal.css`; `.xterm-helper-textarea` opacity 0; char-measure element at `left:-139978` + `visibility:hidden`; width-cache container `0x0`; screen text clean (`n@server:~$`).
+
+### 10. Terminal: selection colour + move to System
+- **Files**: pkg/oled-nova-core/lib/settings.js, pkg/oled-nova-core/manifest.json
+- **Status**: patched - `stock` theme `selectionBackground` `#ffffff33` -> `#a855f744`; `terminal` moved from `tools` to `menu` (order 90, added `graphs` keyword).
+- **Verified live**: System section nav = `Overview, File Studio, Software, Terminal, Services`.
+
+### 11. Overview: gear toggles graph view; drop subtitle + "Show full metrics"
+- **Files**: pkg/oled-nova-core/{dashboard.js,style.css}, new pkg/oled-nova-core/lib/graphs.js
+- **Status**: patched - removed `.on-view-sub` and `.on-info-more`; added a gear button (title "Toggle graph view") that toggles `.on-graph-mode` and persists `settings.overview_view`; new `Graph` class (canvas rolling line graph, time-based lerp, autoscale, `ResizeObserver`); graph view shows CPU, Memory, Disk read, Disk write, Power, CPU temp.
+- **Verified live**: 6 canvases with correct titles; toggling hides the rings grid and shows the graphs grid.
+
+### 12. Rings + graphs smoothing (TMOG)
+- **Files**: pkg/oled-nova-core/lib/rings.js, pkg/oled-nova-core/lib/graphs.js
+- **Status**: patched - decoupled draw from fetch via `requestAnimationFrame`, time-based exponential lerp `displayed += diff * (1 - Math.exp(-dt / tau))`, `tau ≈ 0.15 s`.
+
+### 13. Disk rings 2x2
+- **Files**: pkg/oled-nova-core/style.css
+- **Status**: patched - `.on-group-rings` -> `repeat(2, minmax(0, 1fr))`; the Disk card's 4 small rings now lay out 2x2.
+
+### 14. Processes: current-user filter + Del key + no End-process button
+- **Files**: pkg/oled-nova-core/lib/processes.js
+- **Status**: patched - defaults to the current user (`cockpit.user()`) with a `Mine`/`All` toggle; removed the End-process (kill) button (double-click still kills); `Del` terminates the selected row (handler bound in `open()`, unbound in `close()`).
+
+### 15. Software: styling, Available pagination + source/sort, Updates refresh, sticky layout
+- **Files**: pkg/oled-nova-packages/{style.css,index.js}
+- **Status**: patched - CSS: added `.on-btn-danger:hover`, `.on-btn:disabled`, `.on-input`, `.on-select`, `.on-input.on-grow`, `.on-src`, `.on-pager*`; `#oled-root { height:100%; overflow:hidden }` and `.on-soft-page { overflow:hidden }` (fixes the white search box and the scrolling toolbar). Available now lists the whole repo (`GetPackages` `FILTER_NOT_INSTALLED|NEWEST|ARCH|NOT_SOURCE`) rendered client-side with live search filter, a Source select (apt always + snap/flatpak/npm/pip when present; flatpak apps indexed best-effort), a sort select (Name up/down, Version up/down, Source) and a Google-style pager (`‹ 1 2 3 … N ›`) top and bottom, 50/page. Updates runs `PK.refresh()` before `get_updates()`; the Refresh button forces a cache refresh.
+- **Verified live**: Available 50 rows, pager `‹ 1 2 3 … 1267 ›`, Source tag `apt`, sort options incl. `Source`; Updates "The system is up to date."; `#oled-root` height 879px, overflow hidden.
+
+### 16. Deploy (server, Cockpit 287)
+- **Tarball**: `/tmp/on.tgz` (1,892,801 B) extracted to `/usr/share/cockpit/`; branding copied; `static/branding.css` injected into `systemd/{services.html,index.html}`; overrides merged; cockpit restarted.
+- **Rollback**: same as the 1-8 block but with backup dir `/home/n/cockpit-backup-20261015-214050/`.
+
 

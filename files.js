@@ -16,6 +16,7 @@ const info = {
         "oled-nova-core/dashboard.js",
         "oled-nova-core/terminal.js",
         "oled-nova-storage/index.js",
+        "oled-nova-packages/index.js",
 
         "playground/index.js",
         "playground/exception.js",
@@ -115,6 +116,8 @@ const info = {
         "oled-nova-core/style.css",
         "oled-nova-storage/index.html",
         "oled-nova-storage/style.css",
+        "oled-nova-packages/index.html",
+        "oled-nova-packages/style.css",
 
         "packagekit/index.html",
 

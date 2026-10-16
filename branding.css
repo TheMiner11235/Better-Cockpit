@@ -22,6 +22,7 @@
     --on-accent-deep: #7c3aed;
     --on-masthead-h: 70px;
     --on-nav-width: 15rem;
+    --on-sliver: 12px;
     --on-ease: cubic-bezier(.4, 0, .2, 1);
 }
 
@@ -125,6 +126,8 @@ header.pf-c-masthead {
 
     .page>.area-ct-content {
         grid-area: main !important;
+        /* reserve the always-visible nav sliver so content is never hidden */
+        margin-left: var(--on-sliver) !important;
     }
 
     .page>.header {
@@ -153,7 +156,7 @@ header.pf-c-masthead {
         background: linear-gradient(180deg, var(--on-surface-2), var(--on-surface)) !important;
         border-right: 1px solid var(--on-border-strong);
         box-shadow: 2px 0 0 0 var(--on-accent-deep), 14px 0 44px rgba(0, 0, 0, .72);
-        transform: translateX(calc(-100% + 12px));
+        transform: translateX(calc(-100% + var(--on-sliver)));
         transition: transform .22s var(--on-ease);
         will-change: transform;
     }
@@ -200,4 +203,177 @@ body.login-pf .container-fluid {
 
 body.login-pf #badge {
     background-color: transparent;
+}
+
+/* ---------- Built-in package frames (287) ----------
+ * On Cockpit 287 the systemd/packagekit frames do not link branding.css
+ * (newer Cockpit does). The deploy step injects the <link> so these rules,
+ * together with the PatternFly v4 variable remap above, theme those pages.
+ */
+
+/* Services (systemd) */
+.services-header,
+.services-toolbar {
+    background: transparent !important;
+}
+
+.services-list,
+.index-page .ct-card,
+.system-overview-page .ct-card {
+    background: var(--on-surface) !important;
+    border: 1px solid var(--on-border) !important;
+    border-radius: 10px !important;
+}
+
+.ct-card-expandable-header,
+.ct-table-header,
+.services-list thead {
+    background: var(--on-surface-2) !important;
+    color: var(--on-text-dim) !important;
+}
+
+.services-list li:hover,
+.service-unit:hover,
+.ct-table tbody tr:hover {
+    background: var(--on-surface-3) !important;
+}
+
+.service-unit-failed,
+.service-unit-status-failed,
+.status-failed,
+.ct-exclamation-circle,
+.ct-icon-exclamation-triangle {
+    color: #ff7468 !important;
+}
+
+.service-unit-failed {
+    border-left: 3px solid #ff7468 !important;
+}
+
+.status-running,
+.ct-check-circle {
+    color: #4ade80 !important;
+}
+
+.status-enabled {
+    color: var(--on-accent-soft) !important;
+}
+
+.service-name {
+    color: var(--on-text) !important;
+}
+
+.service-unit-description,
+.service-unit-file-state,
+.side-note,
+.font-xs {
+    color: var(--on-text-dim) !important;
+}
+
+/* cockpit journals/log lines */
+.cockpit-log-panel,
+.cockpit-log-service-container {
+    background: var(--on-surface-2) !important;
+}
+
+.cockpit-logline {
+    border-bottom: 1px solid var(--on-border) !important;
+}
+
+.cockpit-log-service,
+.cockpit-log-time {
+    color: var(--on-text-dim) !important;
+}
+
+.cockpit-log-message,
+.cockpit-log-message .cockpit-log-message {
+    color: var(--on-text) !important;
+}
+
+.cockpit-log-warning {
+    color: #fbbf24 !important;
+}
+
+/* generic PatternFly v4 surfaces across built-in pages */
+.pf-c-page__main-section,
+.pf-c-page__main {
+    background: var(--on-bg) !important;
+}
+
+.pf-c-card {
+    background: var(--on-surface) !important;
+    border-color: var(--on-border) !important;
+}
+
+.pf-c-toolbar {
+    background: transparent !important;
+}
+
+.pf-c-table thead th {
+    background: var(--on-surface-2) !important;
+    color: var(--on-text-dim) !important;
+}
+
+.pf-c-table tbody tr:hover {
+    background: var(--on-surface-3) !important;
+}
+
+.pf-c-nav__link.pf-m-current {
+    background: var(--on-accent-deep) !important;
+    color: #ffffff !important;
+}
+
+/* ---------- Shell chrome (CSS-only; no shell rebuild on 287) ---------- */
+#topnav,
+.pf-c-masthead {
+    color: var(--on-text) !important;
+}
+
+/* account / host dropdown + generic shell menus */
+.pf-c-dropdown__menu,
+.pf-c-masthead .pf-c-dropdown__menu,
+#topnav .pf-c-dropdown__menu,
+.pf-c-popover__content {
+    background: var(--on-surface-2) !important;
+    border: 1px solid var(--on-border-strong) !important;
+    box-shadow: var(--on-shadow) !important;
+}
+
+.pf-c-dropdown__menu-item,
+.pf-c-dropdown__menu button,
+.pf-c-dropdown__menu a {
+    color: var(--on-text) !important;
+    background: transparent !important;
+}
+
+.pf-c-dropdown__menu-item:hover,
+.pf-c-dropdown__menu-item:focus,
+.pf-c-dropdown__menu button:hover,
+.pf-c-dropdown__menu a:hover {
+    background: var(--on-surface-3) !important;
+}
+
+.pf-c-dropdown__toggle,
+#topnav button,
+.pf-c-masthead button {
+    color: var(--on-text) !important;
+    background: transparent !important;
+}
+
+.pf-c-dropdown__toggle:hover,
+#topnav button:hover,
+.pf-c-masthead button:hover {
+    background: var(--on-surface-3) !important;
+}
+
+/* host selector button (top-left) */
+#hosts-sel .pf-c-dropdown__toggle,
+#hosts-sel button {
+    color: var(--on-text) !important;
+}
+
+/* separators / dividers in the masthead */
+.pf-c-divider,
+.pf-c-masthead .pf-c-divider {
+    border-color: var(--on-border) !important;
 }
